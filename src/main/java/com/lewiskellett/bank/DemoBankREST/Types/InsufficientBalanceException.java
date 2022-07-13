@@ -8,7 +8,7 @@ public class InsufficientBalanceException extends RuntimeException {
 
     public InsufficientBalanceException(Account target, double amount) {
         super("Insufficient balance '" + target.getBalance() +
-                "' on account '" + target.getAccountUUID() +
+                "' on account '" + target.getAccountID() +
                 "' to complete transaction of '" + amount + "'.");
     }
 
