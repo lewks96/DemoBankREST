@@ -4,13 +4,17 @@ import com.lewiskellett.bank.DemoBankREST.AccountRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /*
     TODO:
+        * Implement transactions!
+    FIXED:
         * Each of the mappings currently call repo.findAll(), there is probably
           a more efficient way to iterate the repo, look into it.
  */
@@ -35,58 +39,34 @@ public class AccountController {
 
     @PostMapping("/accounts/new")
     Account newAccount(@RequestBody AccountApplication newAccount) {
-        //try {
         Account acc = Account.CreateFrom(newAccount);
+        Optional<Account> result = repo.findByAccount(acc);
 
-        List<Account> accounts = all();
-        for (Account a : accounts) {
-            if (a.equals(acc)) {
-                // This shouldn't really ever throw?
-                throw new AccountExistsException(acc.getAccountID());
-            }
+        if (result.isPresent()) {
+            // This shouldn't really ever throw?
+            throw new AccountExistsException(acc.getAccountID());
         }
 
         return repo.save(acc);
-        /*} catch (AccountApplicationException ex) {
-            logger.error(ex.getMessage());
-        } catch (AccountExistsException ex) {
-            logger.error(ex.getMessage());
-        }*/
-        // return null;
     }
 
     @GetMapping("/account/{accountID}")
     Account one(@PathVariable String accountID) {
-        List<Account> all = this.repo.findAll();
-        for (Account a : all) {
-            if (a.getAccountID().equals(accountID))
-                return a;
+        Optional<Account> result = repo.findByIdString(accountID);
+        if (result.isPresent()) {
+            return result.get();
         }
         throw new AccountNotFoundException(accountID);
     }
 
-//    @GetMapping("/accounts/{firstName}/{lastName}")
-//    Account one(@PathVariable String firstName, @PathVariable String lastName) {
-//        List<Account> all = this.repo.findAll();
-//        for (Account a : all) {
-//            if (a.getFirstName().equals(firstName) &&
-//                    a.getLastName().equals(lastName)) {
-//                return a;
-//            }
-//        }
-//        throw new AccountNotFoundException(firstName + " " + lastName);
-//    }
-
     @DeleteMapping("/accounts/{accountID}")
     ResponseEntity<?> deleteAccount(@PathVariable String accountID) {
-        List<Account> all = this.repo.findAll();
-        for (Account a : all) {
-            if (a.getAccountID().equals(accountID)) {
-                this.repo.delete(a);
-                return ResponseEntity.noContent().build();
-
-            }
+        Optional<Account> result = repo.findByIdString(accountID);
+        if (result.isPresent()) {
+            repo.delete(result.get());
+            return new ResponseEntity<>("{ \"result\": \"ok\" }", HttpStatus.OK);
         }
+
         throw new AccountNotFoundException(accountID);
     }
 

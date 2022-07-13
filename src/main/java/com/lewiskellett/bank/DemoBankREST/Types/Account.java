@@ -32,6 +32,18 @@ public class Account {
         this.accountID = generateAccountID();
     }
 
+    public Account(String firstName, String lastName, double startingBalance, String accountID) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.balance = startingBalance;
+
+        this.hasOverdraft = false;
+        this.overdraftLimit = 0;
+
+        this.accountID = accountID;
+    }
+
+
     private static String generateAccountID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
@@ -108,7 +120,7 @@ public class Account {
     @Override
     public String toString() {
         return "Account{" + "id=" + this.id + ", name='" + this.getFullName() +
-                '\'' + ", uuid='" + this.accountID + '\'' + '}';
+                "'" + ", accountID='" + this.accountID + "', balance='" + this.getBalance() + "'}";
     }
 
 }

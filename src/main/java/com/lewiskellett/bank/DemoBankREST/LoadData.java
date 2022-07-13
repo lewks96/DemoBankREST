@@ -6,21 +6,70 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+
+import java.lang.reflect.Array;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.exact;
 
 @Configuration
 public class LoadData {
     private static final Logger logger = LoggerFactory.getLogger(LoadData.class);
 
+    //https://mkyong.com/java/how-to-round-double-float-value-to-2-decimal-points-in-java/
+    private static final DecimalFormat balanceFormat = new DecimalFormat("0.00");
+
     @Bean
     CommandLineRunner initDatabase(AccountRepository repository) {
+        Random random = new Random();
+
+        List<String> firstNames = new ArrayList<>();
+        firstNames.add("John");
+        firstNames.add("James");
+        firstNames.add("Paul");
+        firstNames.add("Fred");
+        firstNames.add("Steve");
+        firstNames.add("Adam");
+        firstNames.add("Jessica");
+        firstNames.add("Samantha");
+        firstNames.add("Christine");
+        firstNames.add("Chloe");
+        firstNames.add("Charlotte");
+        firstNames.add("Alex");
+
+        List<String> lastNames = new ArrayList<>();
+        lastNames.add("Smith");
+        lastNames.add("Jones");
+        lastNames.add("Taylor");
+        lastNames.add("Brown");
+        lastNames.add("Williams");
+        lastNames.add("Wilson");
 
         return args -> {
-            logger.info("Loading" + repository.save(new Account("Adam", "Smith", 133.55)));
-            logger.info("Loading" + repository.save(new Account("Liam", "Jones", 133.55)));
-            logger.info("Loading" + repository.save(new Account("Elijah", "Taylor", 133.55)));
-            logger.info("Loading" + repository.save(new Account("Olivia", "Brown", 133.55)));
-            logger.info("Loading" + repository.save(new Account("Emma", "Williams", 133.55)));
-            logger.info("Loading" + repository.save(new Account("Charlotte", "Wilson", 133.55)));
+            for (int i = 0; i < 100; ++i) {
+                double balance = Double.parseDouble(balanceFormat.format(0 + (random.nextDouble() * 5000)));
+
+                Account newAccount = new Account(
+                        firstNames.get(random.nextInt(firstNames.size())),
+                        lastNames.get(random.nextInt(lastNames.size())),
+                        balance);
+
+                if (repository.accountExists(newAccount)) {
+                    logger.error("Account ID collision?, " + newAccount);
+                    System.exit(-1); // really, really should not happen ever
+                }
+
+                logger.info("Loading" + repository.save(newAccount));
+            }
+
         };
     }
+
+
 }
