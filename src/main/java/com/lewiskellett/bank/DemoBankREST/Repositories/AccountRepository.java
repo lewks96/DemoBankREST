@@ -12,21 +12,16 @@ import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatc
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
-    // There's probably a better location for these?
-    // probably better that copying all the accounts per query
-
     default boolean accountExists(Account account) {
         return findByAccount(account).isPresent();
     }
 
     default Optional<Account> findByIdString(String accountID) {
-        Account query = new Account("", "", 0, accountID);
+        Account query = new Account(accountID);
         return findByAccount(query);
     }
 
     default Optional<Account> findByAccount(Account account) {
-        // Account query = new Account("", "", 0, accountID);
-
         ExampleMatcher matcher = ExampleMatcher.matching()
                 .withIgnorePaths("firstName")
                 .withIgnorePaths("lastName")

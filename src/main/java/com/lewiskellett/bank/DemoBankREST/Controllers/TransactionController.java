@@ -5,17 +5,12 @@ import com.lewiskellett.bank.DemoBankREST.Repositories.TransactionRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.exact;
 
 /*
     TODO:
@@ -38,15 +33,7 @@ public class TransactionController {
         this.transactionRepository = transactionRepository;
     }
 
-    // Aggregate root
-    // tag::get-aggregate-root[]
-    //@GetMapping("/accounts")
-    List<Account> all() {
-        return accountRepository.findAll();
-    }
-    // end::get-aggregate-root[]
-
-    @PostMapping("/transactions/post")
+    @PostMapping("/transactions/new")
     ResponseEntity<?> postNewTransaction(@RequestBody Transaction transaction) {
         if (transaction.getAmount() == 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -54,40 +41,61 @@ public class TransactionController {
 
         Optional<Account> sourceOptional = accountRepository.findByIdString(transaction.getSourceAccountID());
         Optional<Account> destinationOptional = accountRepository.findByIdString(transaction.getDestinationAccountID());
-
         if (sourceOptional.isPresent() && destinationOptional.isPresent()) {
             Account source = sourceOptional.get();
             Account destination = destinationOptional.get();
 
             source.postTransaction(transaction);
             destination.postTransaction(transaction);
-
             transactionRepository.save(transaction);
-
             accountRepository.save(source);
             accountRepository.save(destination);
-
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(transaction, HttpStatus.OK);
         }
-
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/transactions/all/{accountID}")
-    ResponseEntity<?> one(@PathVariable String accountID) {
+    ResponseEntity<?> all(@PathVariable String accountID) {
         Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
-            ExampleMatcher matcher = ExampleMatcher.matching()
-                    .withIgnorePaths("destinationAccountID")
-                    .withIgnorePaths("amount")
-                    .withIgnorePaths("timestamp")
-                    .withMatcher("sourceAccountID", exact());
+            return new ResponseEntity<>(transactionRepository.getAllTransactionsBySource(result.get()), HttpStatus.OK);
+        }
+        throw new AccountNotFoundException(accountID);
+    }
 
-            Transaction dummy = new Transaction(accountID, "", 0, LocalDateTime.now());
-            Example<Transaction> example = Example.of(dummy, matcher);
+    @GetMapping("/transactions/{transactionID}")
+    ResponseEntity<?> fromID(@PathVariable String transactionID) {
+        Optional<Transaction> result = transactionRepository.getTransactionById(transactionID);
+        if (result.isPresent()) {
+            return new ResponseEntity<>(result.get(), HttpStatus.OK);
+        }
+        throw new TransactionNotFoundException(transactionID);
+    }
 
-            List<Transaction> list = transactionRepository.findAll(example);
-            return new ResponseEntity<>(list, HttpStatus.OK);
+
+    @GetMapping("/transactions/month/{accountID}")
+    ResponseEntity<?> recent(@PathVariable String accountID) {
+        Optional<Account> result = accountRepository.findByIdString(accountID);
+        if (result.isPresent()) {
+            return new ResponseEntity<>(transactionRepository.getTransactionsRange(
+                    result.get(),
+                    LocalDateTime.now(),
+                    LocalDateTime.now().minusMonths(1)),
+                    HttpStatus.OK);
+        }
+        throw new AccountNotFoundException(accountID);
+    }
+
+    @GetMapping("/transactions/days/{accountID}/{days}")
+    ResponseEntity<?> fromDaysAgo(@PathVariable String accountID, @PathVariable long days) {
+        Optional<Account> result = accountRepository.findByIdString(accountID);
+        if (result.isPresent()) {
+            return new ResponseEntity<>(transactionRepository.getTransactionsRange(
+                    result.get(),
+                    LocalDateTime.now(),
+                    LocalDateTime.now().minusDays(days)),
+                    HttpStatus.OK);
         }
         throw new AccountNotFoundException(accountID);
     }

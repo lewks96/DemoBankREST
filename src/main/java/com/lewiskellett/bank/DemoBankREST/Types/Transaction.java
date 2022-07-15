@@ -5,18 +5,25 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 public class Transaction {
     private @Id
     @GeneratedValue Long id;
 
+    private String transactionID;
     private String sourceAccountID;
     private String destinationAccountID;
     private long amount;
-    private LocalDateTime timestamp;
+    private final LocalDateTime timestamp;
 
     public Transaction() {
+        this.timestamp = LocalDateTime.now();
+        StringBuilder sb = new StringBuilder();
+        sb.append(UUID.randomUUID()).append(UUID.randomUUID());
+        this.transactionID = sb.toString().replace("-", "");
+
     }
 
     public Transaction(String sourceAccountID, String destinationAccountID, long amount, LocalDateTime timestamp) {
@@ -26,20 +33,32 @@ public class Transaction {
         this.timestamp = timestamp;
     }
 
+    public Transaction(String ID) {
+        this.sourceAccountID = "";
+        this.destinationAccountID = "";
+        this.amount = 0;
+        this.timestamp = LocalDateTime.now();
+        this.transactionID = ID;
+    }
+
     public String getSourceAccountID() {
-        return sourceAccountID;
+        return this.sourceAccountID;
     }
 
     public String getDestinationAccountID() {
-        return destinationAccountID;
+        return this.destinationAccountID;
     }
 
     public long getAmount() {
-        return amount;
+        return this.amount;
     }
 
     public LocalDateTime getTimestamp() {
-        return timestamp;
+        return this.timestamp;
+    }
+
+    public String getTransactionID() {
+        return this.transactionID;
     }
 
     @Override
@@ -61,7 +80,9 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction {" + "id=" + this.id + ", sourceAccountID='" + this.getSourceAccountID() +
+        return "Transaction {" + "id=" + this.transactionID + ", sourceAccountID='" + this.getSourceAccountID() +
                 "'" + ", destinationAccountID='" + this.getDestinationAccountID() + "', amount='" + this.getAmount() + "'}";
     }
+
+
 }

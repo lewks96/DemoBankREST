@@ -41,16 +41,14 @@ public class AccountController {
     ResponseEntity<?> newAccount(@RequestBody AccountApplication newAccount) {
         Account acc = Account.CreateFrom(newAccount);
         Optional<Account> result = accountRepository.findByAccount(acc);
-
         if (result.isPresent()) {
             // This shouldn't really ever throw?
             throw new AccountExistsException(acc.getAccountID());
         }
-
         return new ResponseEntity<>(accountRepository.save(acc), HttpStatus.OK);
     }
 
-    @GetMapping("/account/{accountID}")
+    @GetMapping("/accounts/{accountID}")
     ResponseEntity<?> one(@PathVariable String accountID) {
         Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
@@ -66,7 +64,6 @@ public class AccountController {
             accountRepository.delete(result.get());
             return new ResponseEntity<>("{ \"result\": \"ok\" }", HttpStatus.OK);
         }
-
         throw new AccountNotFoundException(accountID);
     }
 

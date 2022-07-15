@@ -2,13 +2,13 @@ package com.lewiskellett.bank.DemoBankREST;
 
 import com.lewiskellett.bank.DemoBankREST.Repositories.AccountRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.Account;
+import com.lewiskellett.bank.DemoBankREST.Util.BalanceFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,9 +16,6 @@ import java.util.Random;
 @Configuration
 public class LoadData {
     private static final Logger logger = LoggerFactory.getLogger(LoadData.class);
-
-    //https://mkyong.com/java/how-to-round-double-float-value-to-2-decimal-points-in-java/
-    private static final DecimalFormat balanceFormat = new DecimalFormat("0.00");
 
     @Bean
     CommandLineRunner initDatabase(AccountRepository repository) {
@@ -47,8 +44,22 @@ public class LoadData {
         lastNames.add("Wilson");
 
         return args -> {
+            /*logger.info("Loading" + repository.save(new Account(
+                    "first",
+                    "last",
+                    100,
+                    "source"
+            )));
+
+            logger.info("Loading" + repository.save(new Account(
+                    "first",
+                    "last",
+                    1000,
+                    "dest"
+            )));
+*/
             for (int i = 0; i < 100; ++i) {
-                double balance = Double.parseDouble(balanceFormat.format(0 + (random.nextDouble() * 5000)));
+                double balance = BalanceFormat.round(0 + (random.nextDouble() * 5000));
 
                 Account newAccount = new Account(
                         firstNames.get(random.nextInt(firstNames.size())),

@@ -1,5 +1,6 @@
 package com.lewiskellett.bank.DemoBankREST.Types;
 
+import com.lewiskellett.bank.DemoBankREST.Util.BalanceFormat;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDate;
@@ -45,11 +46,13 @@ public class Account {
         this.accountID = accountID;
     }
 
+    public Account(String accountID) {
+        this.accountID = accountID;
+    }
 
     private static String generateAccountID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
-
 
     public String getFullName() {
         return this.firstName + " " + this.lastName;
@@ -79,7 +82,7 @@ public class Account {
     private void updateBalance(double transactionAmount)
             throws InsufficientBalanceException {
         if (transactionAmount < 0) {
-            double newBalance = this.balance + transactionAmount;
+            double newBalance = BalanceFormat.round(this.balance + transactionAmount);
 
             if (newBalance < 0) {
                 if (!this.hasOverdraft || transactionAmount < this.overdraftLimit) {
@@ -132,8 +135,8 @@ public class Account {
 
     @Override
     public String toString() {
-        return "Account{" + "id=" + this.id + ", name='" + this.getFullName() +
-                "'" + ", accountID='" + this.accountID + "', balance='" + this.getBalance() + "'}";
+        return "Account{" + "id=" + this.getAccountID() + ", name='" + this.getFullName() +
+                "', balance='" + this.getBalance() + "'}";
     }
 
 }
