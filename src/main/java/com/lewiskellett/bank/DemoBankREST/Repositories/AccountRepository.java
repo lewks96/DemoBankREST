@@ -1,4 +1,4 @@
-package com.lewiskellett.bank.DemoBankREST;
+package com.lewiskellett.bank.DemoBankREST.Repositories;
 
 
 import com.lewiskellett.bank.DemoBankREST.Types.Account;

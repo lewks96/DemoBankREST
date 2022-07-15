@@ -1,6 +1,6 @@
 package com.lewiskellett.bank.DemoBankREST.Controllers;
 
-import com.lewiskellett.bank.DemoBankREST.AccountRepository;
+import com.lewiskellett.bank.DemoBankREST.Repositories.AccountRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,49 +21,49 @@ import java.util.Optional;
 
 @RestController
 public class AccountController {
-    private final AccountRepository repo;
+    private final AccountRepository accountRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
-
-    AccountController(AccountRepository repository) {
-        this.repo = repository;
+    AccountController(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
     // Aggregate root
     // tag::get-aggregate-root[]
     //@GetMapping("/accounts")
     List<Account> all() {
-        return repo.findAll();
+        return accountRepository.findAll();
     }
     // end::get-aggregate-root[]
 
     @PostMapping("/accounts/new")
-    Account newAccount(@RequestBody AccountApplication newAccount) {
+    ResponseEntity<?> newAccount(@RequestBody AccountApplication newAccount) {
         Account acc = Account.CreateFrom(newAccount);
-        Optional<Account> result = repo.findByAccount(acc);
+        Optional<Account> result = accountRepository.findByAccount(acc);
 
         if (result.isPresent()) {
             // This shouldn't really ever throw?
             throw new AccountExistsException(acc.getAccountID());
         }
 
-        return repo.save(acc);
+        return new ResponseEntity<>(accountRepository.save(acc), HttpStatus.OK);
     }
 
     @GetMapping("/account/{accountID}")
-    Account one(@PathVariable String accountID) {
-        Optional<Account> result = repo.findByIdString(accountID);
+    ResponseEntity<?> one(@PathVariable String accountID) {
+        Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
-            return result.get();
+            return new ResponseEntity<>(accountRepository.save(result.get()), HttpStatus.OK);
         }
         throw new AccountNotFoundException(accountID);
     }
 
     @DeleteMapping("/accounts/{accountID}")
     ResponseEntity<?> deleteAccount(@PathVariable String accountID) {
-        Optional<Account> result = repo.findByIdString(accountID);
+        Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
-            repo.delete(result.get());
+            accountRepository.delete(result.get());
             return new ResponseEntity<>("{ \"result\": \"ok\" }", HttpStatus.OK);
         }
 

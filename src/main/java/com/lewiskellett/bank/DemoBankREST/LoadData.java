@@ -1,22 +1,17 @@
 package com.lewiskellett.bank.DemoBankREST;
 
+import com.lewiskellett.bank.DemoBankREST.Repositories.AccountRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
-
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.exact;
 
 @Configuration
 public class LoadData {

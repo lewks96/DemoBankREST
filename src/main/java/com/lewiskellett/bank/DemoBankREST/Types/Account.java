@@ -1,5 +1,11 @@
 package com.lewiskellett.bank.DemoBankREST.Types;
 
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -25,10 +31,8 @@ public class Account {
         this.firstName = firstName;
         this.lastName = lastName;
         this.balance = startingBalance;
-
         this.hasOverdraft = false;
         this.overdraftLimit = 0;
-
         this.accountID = generateAccountID();
     }
 
@@ -36,10 +40,8 @@ public class Account {
         this.firstName = firstName;
         this.lastName = lastName;
         this.balance = startingBalance;
-
         this.hasOverdraft = false;
         this.overdraftLimit = 0;
-
         this.accountID = accountID;
     }
 
@@ -74,23 +76,34 @@ public class Account {
         this.overdraftLimit = limit;
     }
 
-    public void updateBalance(double transactionAmount)
+    private void updateBalance(double transactionAmount)
             throws InsufficientBalanceException {
-        double newBalance = this.balance - transactionAmount;
+        if (transactionAmount < 0) {
+            double newBalance = this.balance + transactionAmount;
 
-        if (newBalance < 0) {
-            if (!this.hasOverdraft || transactionAmount < this.overdraftLimit) {
-                throw new InsufficientBalanceException(this, transactionAmount);
+            if (newBalance < 0) {
+                if (!this.hasOverdraft || transactionAmount < this.overdraftLimit) {
+                    throw new InsufficientBalanceException(this, transactionAmount);
+                }
             }
+            this.balance = newBalance;
+        } else {
+            this.balance += transactionAmount;
         }
+    }
 
-        this.balance = newBalance;
+    public void postTransaction(Transaction transaction) throws InsufficientBalanceException {
+        if (transaction.getSourceAccountID().equals(this.accountID)) {
+            updateBalance(transaction.getAmount() * -1.0);
+        } else {
+            updateBalance(transaction.getAmount());
+        }
     }
 
     public static Account CreateFrom(AccountApplication application) throws AccountApplicationException {
         if (application.hasOverdraft() && application.getOverdraftLimit() >= 0) {
             throw new AccountApplicationException(
-                    ApplicationFailureReason.INVALID_OVERDRAFT_AMMOUNT,
+                    ApplicationFailureReason.INVALID_OVERDRAFT_AMOUNT,
                     application);
         }
 
