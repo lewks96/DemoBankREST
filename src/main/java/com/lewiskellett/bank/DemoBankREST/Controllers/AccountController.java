@@ -1,9 +1,11 @@
 package com.lewiskellett.bank.DemoBankREST.Controllers;
 
+import com.lewiskellett.bank.DemoBankREST.Assemblers.AccountModelAssembler;
 import com.lewiskellett.bank.DemoBankREST.Repositories.AccountRepository;
 import com.lewiskellett.bank.DemoBankREST.Types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,22 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-/*
-    TODO:
-        * Implement transactions!
-    FIXED:
-        * Each of the mappings currently call repo.findAll(), there is probably
-          a more efficient way to iterate the repo, look into it.
- */
-
 @RestController
 public class AccountController {
     private final AccountRepository accountRepository;
+    private final AccountModelAssembler accountModelAssembler;
 
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
-    AccountController(AccountRepository accountRepository) {
+    AccountController(AccountRepository accountRepository, AccountModelAssembler accountModelAssembler) {
         this.accountRepository = accountRepository;
+        this.accountModelAssembler = accountModelAssembler;
     }
 
     // Aggregate root
@@ -49,10 +45,11 @@ public class AccountController {
     }
 
     @GetMapping("/accounts/{accountID}")
-    ResponseEntity<?> one(@PathVariable String accountID) {
+    public EntityModel<?> one(@PathVariable String accountID) {
         Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
-            return new ResponseEntity<>(accountRepository.save(result.get()), HttpStatus.OK);
+            return accountModelAssembler.toModel(
+                    accountRepository.save(result.get()));
         }
         throw new AccountNotFoundException(accountID);
     }

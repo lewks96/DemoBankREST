@@ -75,7 +75,7 @@ public class TransactionController {
 
 
     @GetMapping("/transactions/month/{accountID}")
-    ResponseEntity<?> recent(@PathVariable String accountID) {
+    public ResponseEntity<?> recent(@PathVariable String accountID) {
         Optional<Account> result = accountRepository.findByIdString(accountID);
         if (result.isPresent()) {
             return new ResponseEntity<>(transactionRepository.getTransactionsRange(
